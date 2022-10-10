@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private float swipeAmount = 200f;
+    public BoxCollider collider;
+
+    private float swipeAmount = 150f;
 
     public float speed;
     public float jumpSpeed;
@@ -16,8 +18,6 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 touchEndPos;
     private bool swipeLeft = false;
     private bool swipeRight = false;
-    private bool isJumping = false;
-    private bool swipeDown = false;
     private Vector3 targetPos;
     private float tempYPos;
 
@@ -37,8 +37,6 @@ public class PlayerMovement : MonoBehaviour
         temp.x = Mathf.Clamp(temp.x, moveXPos * -1, moveXPos);
         transform.position = temp;
 
-        if (transform.position.y > tempYPos) isJumping = true;
-
 
         if (Input.touchCount > 0)
         {
@@ -48,7 +46,6 @@ public class PlayerMovement : MonoBehaviour
             if (touch.phase == TouchPhase.Ended)
             {
                 touchEndPos = touch.position;
-
 
                 
                 if (!swipeRight && touchEndPos.x < touchStartPos.x && Mathf.Abs(touchEndPos.x - touchStartPos.x) > swipeAmount) // swiping left
@@ -70,19 +67,34 @@ public class PlayerMovement : MonoBehaviour
 
                 if (touchEndPos.y > touchStartPos.y && Mathf.Abs(touchEndPos.y - touchStartPos.y) > swipeAmount) // Swiping up
                 {
-                    if (transform.position.y < 1)
+                    if (transform.position.y < 1.5f)
                     {
                         rb.AddForce(Vector2.up * jumpSpeed, ForceMode.Impulse);
                     }
                 }
                 if (touchEndPos.y < touchStartPos.y && Mathf.Abs(touchEndPos.y - touchStartPos.y) > swipeAmount) // Swiping down
                 {
-                    swipeDown = true;
+                    if(transform.position.y > 1.5f)
+                    {
+                        rb.AddForce(Vector2.down * jumpSpeed, ForceMode.Impulse);
+                    }
+                    else{
+                        StartCoroutine(Slipe());
+                    }
                 }
 
             }
         }
 
+    }
+
+    IEnumerator Slipe()
+    {
+        collider.center = new Vector3(0, -0.35f, 0);
+        collider.size = new Vector3(1, 0.3f, 1);
+        yield return new WaitForSeconds(1f);
+        collider.center = new Vector3(0, 0, 0);
+        collider.size = new Vector3(1, 1f, 1);
     }
 
     private void Move()
